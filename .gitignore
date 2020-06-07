@@ -1,0 +1,4 @@
+/build/
+/dist/
+/rasa_audiocodes.egg-info/
+__pycache__/
