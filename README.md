@@ -6,43 +6,21 @@ for chatbots.
 The Rasa integration is using a REST protocol named
 [AC-Bot-API](https://www.audiocodes.com/media/14764/voiceai-gateway-bot-api-reference.pdf).
 
-## Setting Credentials
-
-In order to integrate with AudioCodes Voice&#46;AI Gateway, configure
-a provider on VAIG side with the following attributes:
-
-```json
-  {
-    "name": "rasa",
-    "type": "ac-bot-api",
-    "botURL": "https://<RASA>/webhooks/audiocodes/webhook",
-    "credentials": {
-      "token": "CHOOSE_YOUR_TOKEN"
-    }
-  }
-```
-
-## Running on AudioCodes Voice.​AI Gateway
-
-If you want to connect to the AudioCodes input channel using the run
-script, e.g. using:
-
-```bash
-rasa run
-```
-you need to supply a `credentials.yml` with the following content:
-
-```yaml
-rasa_audiocodes.AudiocodesInput:
-  token: "CHOOSE_YOUR_TOKEN"
-```
-
 ## Installation
 
 The easiest way to install the package is through [PyPI](https://pypi.org/project/rasa-audiocodes).
 
 ```sh
 pip install rasa-audiocodes
+```
+
+## Rasa Configuration
+
+Add the following content to `credentials.yml`:
+
+```yaml
+rasa_audiocodes.AudiocodesInput:
+  token: "CHOOSE_YOUR_TOKEN"
 ```
 
 ## Docker
@@ -54,4 +32,38 @@ If you already have a docker-compose file, just add this to the rasa volumes:
 
 ```yaml
       - ./rasa_audiocodes:/opt/venv/lib/python3.7/site-packages/rasa_audiocodes
+```
+## PNC Setup
+
+The easiest way to start using VAIG is by visiting https://pnc.audiocodes.io.
+
+You can get a phone number, and route it to your bot.
+
+**Notice: The bot must have the channel installed and configured before doing this.**
+
+Configuration is straight-forward. Click the + sign, then enter the name
+of the bot, URL and the token.
+
+You can now click Validate to verify that the bot is accessible and the
+audiocodes channel is configured correctly.
+
+![PNC Configuration](doc/pnc.png)
+
+Click Next, then choose a country and a city to get a phone number.
+
+After a minute, the number should be routed to your bot.
+
+## Voice&#46;AI Gateway Configuration
+
+If you maintain a VAIG instance, configure a provider with the following attributes:
+
+```json
+  {
+    "name": "rasa",
+    "type": "ac-bot-api",
+    "botURL": "https://<RASA>/webhooks/audiocodes/webhook",
+    "credentials": {
+      "token": "CHOOSE_YOUR_TOKEN"
+    }
+  }
 ```
