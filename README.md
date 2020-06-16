@@ -44,3 +44,14 @@ The easiest way to install the package is through [PyPI](https://pypi.org/projec
 ```sh
 pip install rasa-audiocodes
 ```
+
+## Docker
+
+If you're using Rasa on Docker, you can copy rasa_audiocodes and docker-compose.yml
+to your application directory, and edit the volumes section to match your app directory.
+
+If you already have a docker-compose file, just add this to the rasa volumes:
+
+```yaml
+      - ./rasa_audiocodes:/opt/venv/lib/python3.7/site-packages/rasa_audiocodes
+```
