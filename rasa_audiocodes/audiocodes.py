@@ -200,8 +200,8 @@ class AudiocodesInput(InputChannel):
         async def disconnect(request: Request, cid: Text) -> HTTPResponse:
             self._get_conversation(request.headers.get("Authorization"), cid)
             reason = str({"reason": request.json.get("reason")})
-            on_new_message(
-                UserMessage(text=f"/end{reason}", output_channel=None, sender_id=cid)
+            await on_new_message(
+                UserMessage(text=f"{INTENT_MESSAGE_PREFIX}vaig_end{reason}", output_channel=None, sender_id=cid)
             )
             del self.conversations[cid]
             return response.json({})
