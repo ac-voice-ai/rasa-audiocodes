@@ -176,7 +176,10 @@ class AudiocodesInput(InputChannel):
                 await self._set_scheduler_job()
             self._check_token(request.headers.get("Authorization"))
             if request.method == 'GET':
-                return response.json({})
+                return response.json({
+                    "type": "ac-bot-api",
+                    "success": True
+                    })
             return response.json(self.handle_start_conversation(request.json))
 
         # {"conversation": <cid>, "activities": List[Activity]}
