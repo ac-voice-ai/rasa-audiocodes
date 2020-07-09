@@ -4,7 +4,7 @@ AudioCodes Voice&#46;AI Gateway is an application that enables telephony access
 for chatbots.
 
 The Rasa integration is using a REST protocol named
-[AC-Bot-API](https://www.audiocodes.com/media/14764/voiceai-gateway-bot-api-reference.pdf).
+[AC-Bot-API](https://techdocs.audiocodes.com/voice-ai-gateway/api/version-180/#VAIG_API/API_1.htm).
 
 ## Installation
 
