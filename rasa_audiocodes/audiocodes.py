@@ -5,6 +5,7 @@ import datetime
 import uuid
 from typing import Text, List, Dict, Any, Callable, Awaitable, Iterable, Optional
 import sanic
+import json
 from sanic.response import HTTPResponse
 from rasa.core import jobs
 from rasa.core.constants import INTENT_MESSAGE_PREFIX
@@ -39,7 +40,7 @@ class AudiocodesInput(InputChannel):
             if "value" in event:
                 event_params.update({"value": event["value"]})
             if len(event_params) > 0:
-                text += str(event_params)
+                text += json.dumps(event_params)
             return text
 
         def is_valid(self, now, delta) -> bool:
