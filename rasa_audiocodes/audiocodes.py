@@ -21,6 +21,7 @@ class AudiocodesInput(InputChannel):
     class Conversation:
         def __init__(self, cid):
             self.activityIds = []
+            self.ws = None
             self.cid = cid
             self.update()
 
@@ -55,6 +56,7 @@ class AudiocodesInput(InputChannel):
             output_channel: OutputChannel,
             on_new_message: Callable[[UserMessage], Awaitable[Any]],
         ) -> None:
+            logger.debug(f"(handle_activities) --- Activities:")
             logger.debug(message)
             for activity in message["activities"]:
                 text = None
@@ -109,11 +111,12 @@ class AudiocodesInput(InputChannel):
         if not credentials:
             cls.raise_missing_credentials_exception()
             return None
-        return cls(credentials.get("token"), credentials.get("keep_alive"))
+        return cls(credentials.get("token"), credentials.get("websocket_is_on"), credentials.get("keep_alive"))
 
-    def __init__(self, token: Text, keep_alive: Optional[Text]) -> None:
+    def __init__(self, token: Text, websocket_is_on: bool, keep_alive: Optional[Text]) -> None:
         self.conversations = {}
         self.token = token
+        self.websocket_is_on = websocket_is_on
         self.scheduler_job = None
         self.keep_alive = int(keep_alive or KEEP_ALIVE_SECONDS)
 
@@ -153,18 +156,41 @@ class AudiocodesInput(InputChannel):
         cid = body["conversation"]
         if cid in self.conversations:
             sanic.exceptions.abort(500, "Conversation already exists")
+        logger.debug(f"(handle_start_conversation) --- New Conversation has arrived. Conversation: {cid}")
         self.conversations[cid] = AudiocodesInput.Conversation(cid)
-        return {
+        urls = {
             "activitiesURL": f"/webhooks/audiocodes/conversation/{cid}/activities",
             "disconnectURL": f"/webhooks/audiocodes/conversation/{cid}/disconnect",
             "refreshURL": f"/webhooks/audiocodes/conversation/{cid}/keepalive",
             "expiresSeconds": self.keep_alive,
         }
+        if self.websocket_is_on:
+            urls.update({"websocketURL": f"/webhooks/audiocodes/conversation/{cid}/websocket"}) 
+        return urls
+
 
     def blueprint(
         self, on_new_message: Callable[[UserMessage], Awaitable[Any]]
     ) -> Blueprint:
         ac_webhook = Blueprint("ac_webhook", __name__)
+
+        @ac_webhook.websocket('/conversation/<cid>/websocket')
+        async def new_client_connection(request, ws, cid: Text):
+            if self.websocket_is_on is False:
+               raise ConnectionRefusedError('websocket is unavailable')
+            logger.debug(f"(new_client_connection) --- New client is trying to connect. Conversation: {cid}")
+            conversation = self._get_conversation(request.headers.get("Authorization"), cid)
+            if conversation.ws is not None:
+                logger.debug(f"(new_client_connection) --- The client was already connected. Conversation: {cid}")
+                return
+            conversation.ws = ws
+
+            try:
+                await ws.recv()
+            except:
+                logger.debug(f"(new_client_connection) --- Websocket was closed by client: {cid}")
+                conversation.ws = None
+
 
         @ac_webhook.route("/", methods=["GET"])
         async def health(request: Request) -> HTTPResponse:
@@ -186,18 +212,20 @@ class AudiocodesInput(InputChannel):
         # {"conversation": <cid>, "activities": List[Activity]}
         @ac_webhook.route("/conversation/<cid>/activities", methods=["POST"])
         async def on_activities(request: Request, cid: Text) -> HTTPResponse:
+            logger.debug(f"(on_activities) --- New activities from the user. Conversation: {cid}")
             conversation = self._get_conversation(
                 request.headers.get("Authorization"), cid
             )
-            ac_output = AudiocodesOutput()
-            # pytype: disable=attribute-error
+            ac_output = WebsocketOutput(conversation.ws, cid) if conversation.ws is not None else AudiocodesOutput()
             await conversation.handle_activities(
                 request.json, output_channel=ac_output, on_new_message=on_new_message,
             )
-            # pytype: enable=attribute-error
-            return response.json(
-                {"conversation": cid, "activities": ac_output.messages}
-            )
+            if conversation.ws is None:
+                return response.json(
+                    {"conversation": cid, "activities": ac_output.messages}
+                )
+
+            return response.json({})
 
         # {"conversation": <cid>, "reason": Optional[Text]}
         @ac_webhook.route("/conversation/<cid>/disconnect", methods=["POST"])
@@ -208,6 +236,7 @@ class AudiocodesInput(InputChannel):
                 UserMessage(text=f"{INTENT_MESSAGE_PREFIX}vaig_event_end{reason}", output_channel=None, sender_id=cid)
             )
             del self.conversations[cid]
+            logger.debug(f"(disconnect) --- Conversation was deleted")
             return response.json({})
 
         # {"conversation": <cid>}
@@ -227,17 +256,23 @@ class AudiocodesOutput(OutputChannel):
     def __init__(self) -> None:
         self.messages = []
 
-    async def send_text_message(
-        self, recipient_id: Text, text: Text, **kwargs: Any
-    ) -> None:
-        self.messages.append(
+    async def add_message(self, message) -> None:
+        logger.debug(f"{self.__class__.__name__}::add_message --- message: {message}")
+        message.update(
             {
-                "type": "message",
-                "text": text,
                 "id": str(uuid.uuid4()),
                 "timestamp": datetime.datetime.utcnow().isoformat("T")[:-3] + "Z",
             }
         )
+        await self.do_add_message(message)
+
+    async def do_add_message(self, message) -> None:
+        self.messages.append(message)
+
+    async def send_text_message(
+        self, recipient_id: Text, text: Text, **kwargs: Any
+    ) -> None:
+        await self.add_message({ "type": "message", "text": text })
 
     async def send_image_url(
         self, recipient_id: Text, image: Text, **kwargs: Any
@@ -252,12 +287,13 @@ class AudiocodesOutput(OutputChannel):
     async def send_custom_json(
         self, recipient_id: Text, json_message: Dict[Text, Any], **kwargs: Any
     ) -> None:
-        """Sends json dict to the output channel.
-        Use it to send events like transfer, hangup, playUrl etc."""
-        json_message.update(
-            {
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.datetime.utcnow().isoformat("T")[:-3] + "Z",
-            }
-        )
-        self.messages.append(json_message)
+        await self.add_message(json_message)
+
+
+class WebsocketOutput(AudiocodesOutput):
+    def __init__(self, ws, cid) -> None:
+        self.ws = ws
+        self.cid = cid
+
+    async def do_add_message(self, message) -> None:
+        await self.ws.send(json.dumps({ "conversation": self.cid, "activities": [message] }))
