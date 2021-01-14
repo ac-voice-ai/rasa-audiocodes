@@ -12,7 +12,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=["rasa-sdk>=1.3.2"],
     include_package_data=True,
-    description="Integrate Rasa with AudioCodes Voice.AI Gateway",
+    description="Integrate Rasa with AudioCodes VoiceAI Connect",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ac-voice-ai/rasa-audiocodes",

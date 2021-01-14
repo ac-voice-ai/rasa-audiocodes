@@ -1,6 +1,6 @@
-# AudioCodes Voice&#46;AI Gateway Channel for Rasa
+# AudioCodes VoiceAI Connect Channel for Rasa
 
-AudioCodes Voice&#46;AI Gateway is an application that enables telephony access
+AudioCodes VoiceAI Connect is an application that enables telephony access
 for chatbots.
 
 The Rasa integration is using a REST protocol named
@@ -33,9 +33,9 @@ If you already have a docker-compose file, just add this to the rasa volumes:
 ```yaml
       - ./rasa_audiocodes:/opt/venv/lib/python3.7/site-packages/rasa_audiocodes
 ```
-## PNC Setup
+## VoiceAI Connect Cloud Setup
 
-The easiest way to start using VAIG is by visiting https://pnc.audiocodes.io.
+The easiest way to start using VAIC is by visiting https://voiceaiconnect.audiocodes.io.
 
 You can get a phone number, and route it to your bot.
 
@@ -51,9 +51,9 @@ Click Next, then choose a country and a city to get a phone number.
 
 After a minute, the number should be routed to your bot.
 
-## Voice&#46;AI Gateway Configuration
+## VoiceAI Connect Configuration
 
-If you maintain a VAIG instance, configure a provider with the following attributes:
+If you maintain a VAIC instance, configure a provider with the following attributes:
 
 ```json
   {
