@@ -31,7 +31,7 @@ to your application directory, and edit the volumes section to match your app di
 If you already have a docker-compose file, just add this to the rasa volumes:
 
 ```yaml
-      - ./rasa_audiocodes:/opt/venv/lib/python3.7/site-packages/rasa_audiocodes
+      - ./rasa_audiocodes:/opt/venv/lib/python3.8/site-packages/rasa_audiocodes
 ```
 ## VoiceAI Connect Cloud Setup
 
