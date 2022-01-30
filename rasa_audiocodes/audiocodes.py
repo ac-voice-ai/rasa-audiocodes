@@ -3,12 +3,15 @@ from sanic import Blueprint, response
 from sanic.request import Request
 import datetime
 import uuid
-from typing import Text, List, Dict, Any, Callable, Awaitable, Iterable, Optional
+from typing import Text, Dict, Any, Callable, Awaitable, Optional
 import sanic
 import json
 from sanic.response import HTTPResponse
 from rasa.core import jobs
-from rasa.core.constants import INTENT_MESSAGE_PREFIX
+try:
+    from rasa.shared.constants import INTENT_MESSAGE_PREFIX
+except:
+    from rasa.core.constants import INTENT_MESSAGE_PREFIX
 from rasa.core.channels.channel import UserMessage, OutputChannel, InputChannel
 
 logger = logging.getLogger(__name__)

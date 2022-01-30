@@ -2,18 +2,16 @@ version: '3'
 
 services:
   rasa:
-    image: rasa/rasa
+    image: rasa/rasa:3.0.6
     command: run
     ports:
       - 5005:5005
     volumes:
       - ./app:/app
-      - ./rasa_audiocodes:/opt/venv/lib/python3.7/site-packages/rasa_audiocodes
+      - ./rasa_audiocodes:/opt/venv/lib/python3.8/site-packages/rasa_audiocodes
 
   actions:
-    image: rasa/rasa
+    image: rasa/rasa:3.0.6
     command: run actions
-    ports:
-      - 5055:5055
     volumes:
       - ./app:/app
