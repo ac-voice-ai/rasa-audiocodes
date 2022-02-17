@@ -162,13 +162,13 @@ class AudiocodesInput(InputChannel):
         logger.debug(f"(handle_start_conversation) --- New Conversation has arrived. Conversation: {cid}")
         self.conversations[cid] = AudiocodesInput.Conversation(cid)
         urls = {
-            "activitiesURL": f"/webhooks/audiocodes/conversation/{cid}/activities",
-            "disconnectURL": f"/webhooks/audiocodes/conversation/{cid}/disconnect",
-            "refreshURL": f"/webhooks/audiocodes/conversation/{cid}/keepalive",
+            "activitiesURL": f"conversation/{cid}/activities",
+            "disconnectURL": f"conversation/{cid}/disconnect",
+            "refreshURL": f"conversation/{cid}/keepalive",
             "expiresSeconds": self.keep_alive,
         }
         if self.websocket_is_on:
-            urls.update({"websocketURL": f"/webhooks/audiocodes/conversation/{cid}/websocket"}) 
+            urls.update({"websocketURL": f"conversation/{cid}/websocket"}) 
         return urls
 
 
