@@ -234,7 +234,7 @@ class AudiocodesInput(InputChannel):
         @ac_webhook.route("/conversation/<cid>/disconnect", methods=["POST"])
         async def disconnect(request: Request, cid: Text) -> HTTPResponse:
             self._get_conversation(request.headers.get("Authorization"), cid)
-            reason = str({"reason": request.json.get("reason")})
+            reason = json.dumps({"reason": request.json.get("reason")})
             await on_new_message(
                 UserMessage(text=f"{INTENT_MESSAGE_PREFIX}vaig_event_end{reason}", output_channel=None, sender_id=cid)
             )
