@@ -1,13 +1,14 @@
-import logging
-from sanic import Blueprint, response
-from sanic.request import Request
 import datetime
-import uuid
-from typing import Text, Dict, Any, Callable, Awaitable, Optional
-import sanic
 import json
-from sanic.response import HTTPResponse
+import logging
+import uuid
 from rasa.core import jobs
+from sanic import Blueprint, response
+from sanic.exceptions import SanicException
+from sanic.request import Request
+from sanic.response import HTTPResponse
+from typing import Text, Dict, Any, Callable, Awaitable, Optional
+
 try:
     from rasa.shared.constants import INTENT_MESSAGE_PREFIX
 except:
@@ -132,7 +133,7 @@ class AudiocodesInput(InputChannel):
 
     def _check_token(self, token: Optional[Text]) -> None:
         if not token or not token.replace("Bearer ", "") == self.token:
-            sanic.exceptions.abort(401)
+            raise SanicException(status_code=401)
 
     def _get_conversation(
         self, token: Optional["Text"], cid: Text
@@ -140,8 +141,7 @@ class AudiocodesInput(InputChannel):
         self._check_token(token)
         conversation = self.conversations.get(cid)
         if not conversation:
-            sanic.exceptions.abort(404, "Not found")
-            return None
+            raise SanicException("Not found", status_code=404)
         conversation.update()
         return conversation
 
@@ -158,7 +158,7 @@ class AudiocodesInput(InputChannel):
     def handle_start_conversation(self, body: Dict[Text, Any]) -> Dict[Text, Any]:
         cid = body["conversation"]
         if cid in self.conversations:
-            sanic.exceptions.abort(500, "Conversation already exists")
+            raise SanicException("Conversation already exists", status_code=500)
         logger.debug(f"(handle_start_conversation) --- New Conversation has arrived. Conversation: {cid}")
         self.conversations[cid] = AudiocodesInput.Conversation(cid)
         urls = {
