@@ -14,7 +14,7 @@ aiofiles==25.1.0
     # via sanic
 aiogram==2.15
     # via rasa
-aiohttp==3.9.5
+aiohttp==3.13.3
     # via
     #   aiogram
     #   aiohttp-retry
