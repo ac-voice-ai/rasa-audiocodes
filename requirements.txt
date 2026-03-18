@@ -34,7 +34,7 @@ sanic-routing==0.7.2
     # via sanic
 typing-extensions==4.4.0
     # via rasa-sdk
-ujson==5.7.0
+ujson==5.12.0
     # via sanic
 uvloop==0.17.0
     # via sanic
