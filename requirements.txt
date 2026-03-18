@@ -604,7 +604,7 @@ websockets==10.4
     #   sanic
 werkzeug==3.1.6
     # via tensorboard
-wheel==0.45.1
+wheel==0.46.2
     # via
     #   astunparse
     #   rasa
