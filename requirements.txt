@@ -304,7 +304,7 @@ prompt-toolkit==3.0.28
     #   rasa-sdk
 propcache==0.4.1
     # via yarl
-protobuf==4.23.3
+protobuf==5.29.6
     # via
     #   rasa
     #   tensorboard
