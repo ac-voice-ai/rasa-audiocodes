@@ -25,17 +25,14 @@ rasa_audiocodes.AudiocodesInput:
 
 ## Docker
 
-If you're using Rasa on Docker, you can copy rasa_audiocodes and docker-compose.yml
-to your application directory, and edit the volumes section to match your app directory.
-
-If you already have a docker-compose file, just add this to the rasa volumes:
+If you're using Rasa on Docker, you can install it from pip:
 
 ```yaml
-      - ./rasa_audiocodes:/opt/venv/lib/python3.8/site-packages/rasa_audiocodes
+RUN pip install "rasa-audiocodes>=1.0.0"
 ```
 ## VoiceAI Connect Cloud Setup
 
-The easiest way to start using VAIC is by visiting https://voiceaiconnect.audiocodes.io.
+The easiest way to start using VAIC is by visiting https://livehub.audiocodes.io.
 
 You can get a phone number, and route it to your bot.
 

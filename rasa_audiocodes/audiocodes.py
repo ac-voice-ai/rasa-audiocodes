@@ -1,8 +1,8 @@
+import asyncio
 import datetime
 import json
 import logging
 import uuid
-from rasa.core import jobs
 from sanic import Blueprint, response
 from sanic.exceptions import SanicException
 from sanic.request import Request
@@ -121,15 +121,13 @@ class AudiocodesInput(InputChannel):
         self.conversations = {}
         self.token = token
         self.websocket_is_on = websocket_is_on
-        self.scheduler_job = None
+        self._cleanup_task = None
         self.keep_alive = int(keep_alive or KEEP_ALIVE_SECONDS)
 
-    async def _set_scheduler_job(self) -> None:
-        if self.scheduler_job:
-            self.scheduler_job.remove()
-        self.scheduler_job = (await jobs.scheduler()).add_job(
-            self.clean_old_conversations, "interval", minutes=10
-        )
+    async def _start_cleanup_loop(self) -> None:
+        while True:
+            await asyncio.sleep(600)
+            self.clean_old_conversations()
 
     def _check_token(self, token: Optional[Text]) -> None:
         if not token or not token.replace("Bearer ", "") == self.token:
@@ -202,8 +200,8 @@ class AudiocodesInput(InputChannel):
         # {"conversation": <cid>, id, timestamp}
         @ac_webhook.route("/webhook", methods=["GET", "POST"])
         async def receive(request: Request) -> HTTPResponse:
-            if not self.scheduler_job:
-                await self._set_scheduler_job()
+            if not self._cleanup_task:
+                self._cleanup_task = asyncio.ensure_future(self._start_cleanup_loop())
             self._check_token(request.headers.get("Authorization"))
             if request.method == 'GET':
                 return response.json({
